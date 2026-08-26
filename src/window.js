@@ -61,12 +61,14 @@ export default function Window({ application }) {
       return;
     }
 
-    const match = getDiagnostic(start, end);
-    if (!match) {
+
+    const diagnostic = getDiagnosticAtOffset(cursor_position)
+    if (!diagnostic) {
       popover_suggestion.popdown();
       return;
     }
 
+    const {match} = diagnostic
     popover_suggestion.text_view = text_view;
     popover_suggestion.set_title(match.shortMessage || _("Grammar"));
     popover_suggestion.set_description(match.message);
@@ -78,13 +80,20 @@ export default function Window({ application }) {
       popover_suggestion.add_suggestion({ value: replacement.value });
     });
 
-    const iter_location = text_view.get_iter_location(iter);
-    const [x, y] = text_view.buffer_to_window_coords(Gtk.TextWindowType.WIDGET, iter_location.x, iter_location.y)
+
+    const loc = text_view.get_iter_location(iter);
+    const [x, y] = text_view.buffer_to_window_coords(
+      Gtk.TextWindowType.WIDGET,
+      loc.x,
+      loc.y + loc.height,
+    );
+
     const rectangle = new Gdk.Rectangle({
-      // FIXME: magic numbers
-      x: x + 22,
-      y: y + 48
-    })
+      x,
+      y,
+      width: loc.width,
+      height: loc.height,
+    });
     popover_suggestion.set_pointing_to(rectangle);
     popover_suggestion.popup()
   });
@@ -226,14 +235,26 @@ function getTag(iter) {
   return { tag, start, end };
 }
 
-function getDiagnostic(start, end) {
-  const offset = start.get_offset();
-  const length = end.get_offset() - offset;
+function getDiagnosticAtOffset(offset) {
+  let low = 0;
+  let high = diagnostics.length - 1;
 
-  return diagnostics.find((diagnostic) => {
-    return diagnostic.offset === offset && diagnostic.length === length;
-  });
+  while (low <= high) {
+    const mid = (low + high) >> 1;
+    const diagnostic = diagnostics[mid];
+
+    if (offset < diagnostic.start) {
+      high = mid - 1;
+    } else if (offset > diagnostic.end) {
+      low = mid + 1;
+    } else {
+      return diagnostic;
+    }
+  }
+
+  return null;
 }
+
 
 function clearDiagnostics(buffer) {
   diagnostics = [];
@@ -257,17 +278,32 @@ function clearDiagnostics(buffer) {
 function handleMatches(buffer, matches) {
   clearDiagnostics(buffer);
 
-  diagnostics = matches;
+  diagnostics = []
+
+    const offset_map = makeOffsetMap(buffer.text);
 
   for (const match of matches) {
-    buffer.apply_tag_by_name(...getTagParams(buffer, match));
+    const start = offset_map[match.offset]
+    const end = offset_map[match.offset + match.length]
+    const tag_name = getTagName(match)
+
+    const diagnostic = {
+      match,
+      start,
+      end,
+    }
+
+    buffer.apply_tag_by_name(
+      tag_name, buffer.get_iter_at_offset(start), buffer.get_iter_at_offset(end)
+    );
+
+    diagnostics.push(diagnostic)
   }
+
+  diagnostics = diagnostics.sort((a, b) => a.start - b.start);
 }
 
-function getTagParams(buffer, match) {
-  const start_iter = buffer.get_iter_at_offset(match.offset);
-  const end_iter = buffer.get_iter_at_offset(match.offset + match.length);
-
+function getTagName(match) {
   let type = "error";
 
   if (match.type?.typeName === "Hint") {
@@ -280,5 +316,38 @@ function getTagParams(buffer, match) {
     type = "warning";
   }
 
-  return [type, start_iter, end_iter];
+  return type;
+}
+
+// LanguageTool uses UTF-16 code-unit offsets.
+// GtkTextBuffer uses Unicode-character offsets.
+// https://github.com/sonnyp/Eloquent/issues/56
+//
+// Build this once per text snapshot, then use it for all matches.
+function makeOffsetMap(text) {
+  const map = new Uint32Array(text.length + 1);
+
+  let utf16Offset = 0;
+  let charOffset = 0;
+
+  for (const char of text) {
+    map[utf16Offset] = charOffset;
+
+    utf16Offset += char.length;
+    charOffset++;
+  }
+
+  map[utf16Offset] = charOffset;
+
+  return map;
+}
+
+function languageToolRangeToGtkIters(buffer, match, offset_map) {
+  const start = offset_map[match.offset];
+  const end = offset_map[match.offset + match.length];
+
+  return [
+    buffer.get_iter_at_offset(start),
+    buffer.get_iter_at_offset(end),
+  ];
 }
