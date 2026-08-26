@@ -18,6 +18,7 @@
       "name": "fasttext",
       "buildsystem": "simple",
       "build-commands": [
+        "sed -i 's/-march=native//g' Makefile",
         "make",
         "mkdir /app/fastText",
         "cp fasttext *.o /app/fastText"
