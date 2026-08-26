@@ -27,7 +27,26 @@
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1" />
+  <kudos>
+    <kudo>HiDpiIcon</kudo>
+    <kudo>HighContrast</kudo>
+    <kudo>ModernToolkit</kudo>
+  </kudos>
+  <branding>
+    <color type="primary" scheme_preference="light">#a1f5e9</color>
+    <color type="primary" scheme_preference="dark">#097988</color>
+  </branding>
   <releases>
+    <release version="1.5" date="2026-08-26">
+      <description>
+        <ul>
+          <li>Fix emojis breaking corrections</li>
+          <li>Update LanguageTool to 20260824</li>
+          <li>Use GNOME 50</li>
+          <li>Use OpenJDK 25</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.4" date="2025-12-05">
       <description>
         <ul>
@@ -68,13 +87,4 @@
       </description>
     </release>
   </releases>
-  <kudos>
-    <kudo>HiDpiIcon</kudo>
-    <kudo>HighContrast</kudo>
-    <kudo>ModernToolkit</kudo>
-  </kudos>
-  <branding>
-    <color type="primary" scheme_preference="light">#a1f5e9</color>
-    <color type="primary" scheme_preference="dark">#097988</color>
-  </branding>
 </component>

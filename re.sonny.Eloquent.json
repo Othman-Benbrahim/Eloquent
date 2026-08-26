@@ -1,10 +1,10 @@
 {
   "id": "re.sonny.Eloquent",
   "runtime": "org.gnome.Platform",
-  "runtime-version": "49",
+  "runtime-version": "50",
   "sdk": "org.gnome.Sdk",
   "command": "re.sonny.Eloquent",
-  "sdk-extensions": ["org.freedesktop.Sdk.Extension.openjdk21"],
+  "sdk-extensions": ["org.freedesktop.Sdk.Extension.openjdk25"],
   "finish-args": [
     "--share=network",
     "--share=ipc",
@@ -58,7 +58,7 @@
         {
           "name": "openjdk",
           "buildsystem": "simple",
-          "build-commands": ["/usr/lib/sdk/openjdk21/install.sh"]
+          "build-commands": ["/usr/lib/sdk/openjdk25/install.sh"]
         }
       ]
     },
