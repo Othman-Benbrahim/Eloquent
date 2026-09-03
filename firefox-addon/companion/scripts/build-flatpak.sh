@@ -27,7 +27,7 @@ if ! find "${companion_dir}/src-tauri/resources/languagetool" -type f -name lang
 fi
 
 mkdir -p "${output_dir}"
-flatpak-builder --user --install-deps-from=flathub --force-clean --share=network \
+flatpak-builder --user --install-deps-from=flathub --force-clean \
   --repo="${repo_dir}" "${build_dir}" "${manifest}"
 flatpak build-bundle "${repo_dir}" "${output}" "${app_id}"
 printf 'Flatpak : %s\n' "${output}"
