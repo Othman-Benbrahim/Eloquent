@@ -106,7 +106,7 @@ jobs:
         run: ./firefox-addon/companion/scripts/Prepare-Resources.ps1 -TargetOS linux -Architecture x64
 
       - name: Build Flatpak
-        run: ./firefox-addon/companion/scripts/build-flatpak.sh
+        run: bash ./firefox-addon/companion/scripts/build-flatpak.sh
 
       - name: Upload Flatpak
         uses: actions/upload-artifact@v4
