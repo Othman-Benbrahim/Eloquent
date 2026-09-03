@@ -1,6 +1,6 @@
 # Architecture
 
-## Version 0.1
+## Version 0.1.6
 
 La première version sépare volontairement l’interface navigateur du moteur de correction :
 
@@ -13,13 +13,13 @@ flowchart LR
     C --> B
 ```
 
-Le script de contenu extrait uniquement le texte du champ actif, attend la fin de la frappe puis demande une vérification au background. Le background applique les réglages, bloque les hôtes non locaux et appelle `/v2/check`. Le script de contenu dessine ensuite les soulignements et applique la suggestion choisie.
+Le script de contenu retrouve le véritable champ dans le chemin composé des événements, y compris dans un Shadow DOM ouvert ou une iframe à origine dérivée, puis extrait uniquement son texte. Les descendants qui héritent de `isContentEditable` ou de `-moz-user-modify` ne sont jamais traités comme des champs autonomes : le script remonte jusqu'à l'hôte d'édition. Chaque modification incrémente une génération de requête et retire immédiatement la présentation précédente ; une réponse appartenant à une ancienne génération est ignorée. Le background choisit localement une langue explicite, appelle `/v2/check`, ajoute les règles contextuelles locales puis fusionne les zones qui se chevauchent. Au clic, la position du curseur détermine l’offset textuel ciblé ; les rectangles graphiques ne servent que de solution de secours et d’ancrage du popup. L'application d'une suggestion conserve la sélection, utilise les primitives d'édition natives, émet les événements attendus par les frameworks puis vérifie que le texte corrigé reste stable.
 
 ## Composants
 
 | Composant | Responsabilité |
 |---|---|
-| `shared/core.js` | Validation pure, normalisation des réglages et réponses LanguageTool |
+| `shared/core.js` | Validation pure, sélection locale de la langue, normalisation des réglages et réponses LanguageTool |
 | `background/background.js` | Stockage, politique réseau locale et appels HTTP |
 | `content/content.js` | Détection des éditeurs, temporisation, rendu et remplacement |
 | `popup/` | Activation du domaine courant et état du champ actif |

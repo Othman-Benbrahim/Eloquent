@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.othmanbenbrahim.eloquentlocalcompanion</id>
+  <name>Eloquent Local Companion</name>
+  <summary>Gère le moteur de correction LanguageTool local</summary>
+  <developer id="io.github.othmanbenbrahim">
+    <name>Othman Benbrahim et contributeurs</name>
+  </developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <url type="homepage">https://github.com/Othman-Benbrahim/Eloquent</url>
+  <launchable type="desktop-id">io.github.othmanbenbrahim.eloquentlocalcompanion.desktop</launchable>
+  <description>
+    <p>Eloquent Local Companion démarre et surveille un serveur LanguageTool exécuté uniquement sur votre ordinateur pour l'extension Firefox Eloquent Local Assistant.</p>
+  </description>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="0.2.0" date="2026-09-03">
+      <description>
+        <p>Premier prototype multiplateforme du gestionnaire local.</p>
+      </description>
+    </release>
+  </releases>
+</component>
+

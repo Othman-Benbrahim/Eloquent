@@ -19,6 +19,21 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw "Git est intro
 & gh auth status
 if ($LASTEXITCODE -ne 0) { throw "GitHub CLI n’est pas connecté." }
 
+function Test-GitHubRepository {
+    param([Parameter(Mandatory = $true)][string]$Name)
+
+    $PreviousErrorActionPreference = $ErrorActionPreference
+    try {
+        # Windows PowerShell 5.1 transforme parfois stderr de gh en NativeCommandError.
+        $ErrorActionPreference = "Continue"
+        & gh api "repos/$Name" *> $null
+        return $LASTEXITCODE -eq 0
+    }
+    finally {
+        $ErrorActionPreference = $PreviousErrorActionPreference
+    }
+}
+
 if (-not $ForkDirectory) {
     $ForkDirectory = Join-Path (Split-Path $AddonSource -Parent) "Eloquent-fork"
 }
@@ -32,15 +47,13 @@ if (-not (Test-Path (Join-Path $ForkDirectory ".git"))) {
         if ($ExistingItems.Count -gt 0) { throw "Le dossier cible existe et n’est pas un dépôt Git vide : $ForkDirectory" }
     }
 
-    & gh repo view $Repository --json nameWithOwner 2>$null
-    if ($LASTEXITCODE -ne 0) {
+    if (-not (Test-GitHubRepository -Name $Repository)) {
         $ForkName = ($Repository -split "/")[-1]
         & gh api --method POST "repos/$Upstream/forks" -f "name=$ForkName" | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "Impossible de créer le fork GitHub." }
         $Available = $false
         for ($Attempt = 0; $Attempt -lt 15; $Attempt++) {
-            & gh repo view $Repository --json nameWithOwner 2>$null | Out-Null
-            if ($LASTEXITCODE -eq 0) { $Available = $true; break }
+            if (Test-GitHubRepository -Name $Repository) { $Available = $true; break }
             Start-Sleep -Seconds 2
         }
         if (-not $Available) { throw "Le fork a été demandé, mais GitHub ne l’a pas encore rendu disponible." }
@@ -52,7 +65,7 @@ if (-not (Test-Path (Join-Path $ForkDirectory ".git"))) {
 
 $AddonDestination = Join-Path $ForkDirectory "firefox-addon"
 New-Item -ItemType Directory -Path $AddonDestination -Force | Out-Null
-foreach ($DirectoryName in @("extension", "scripts", "tests", "docs")) {
+foreach ($DirectoryName in @("extension", "scripts", "tests", "docs", "companion")) {
     $DirectoryDestination = Join-Path $AddonDestination $DirectoryName
     New-Item -ItemType Directory -Path $DirectoryDestination -Force | Out-Null
     Get-ChildItem (Join-Path $AddonSource $DirectoryName) -Force | ForEach-Object {
@@ -66,12 +79,23 @@ foreach ($FileName in @(
     Copy-Item (Join-Path $AddonSource $FileName) (Join-Path $AddonDestination $FileName) -Force
 }
 
+$CompanionWorkflow = Join-Path $AddonSource ".github\workflows\companion-build.yml"
+if (Test-Path $CompanionWorkflow) {
+    $WorkflowDestination = Join-Path $ForkDirectory ".github\workflows"
+    New-Item -ItemType Directory -Path $WorkflowDestination -Force | Out-Null
+    Copy-Item $CompanionWorkflow (Join-Path $WorkflowDestination "companion-build.yml") -Force
+}
+
 Push-Location $ForkDirectory
 try {
-    & git add firefox-addon
+    $GitPaths = @("firefox-addon")
+    if (Test-Path (Join-Path $ForkDirectory ".github\workflows\companion-build.yml")) {
+        $GitPaths += ".github/workflows/companion-build.yml"
+    }
+    & git add @GitPaths
     & git diff --cached --quiet
     if ($LASTEXITCODE -ne 0) {
-        & git commit -m "Add Firefox local proofreading extension v$Version"
+        & git commit -m "Update Firefox assistant v$Version and desktop companion"
         if ($LASTEXITCODE -ne 0) { throw "Le commit Git a échoué." }
         & git push origin HEAD
         if ($LASTEXITCODE -ne 0) { throw "Le push GitHub a échoué." }

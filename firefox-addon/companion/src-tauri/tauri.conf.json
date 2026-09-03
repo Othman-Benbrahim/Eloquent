@@ -1,0 +1,50 @@
+{
+  "productName": "Eloquent Local Companion",
+  "version": "0.2.0",
+  "identifier": "io.github.othmanbenbrahim.eloquentlocalcompanion",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Eloquent Local Companion",
+        "width": 920,
+        "height": 720,
+        "minWidth": 720,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; img-src 'self' asset: data:; style-src 'self'; script-src 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "resources": {
+      "resources/runtime/": "runtime/",
+      "resources/languagetool/": "languagetool/"
+    },
+    "category": "Utility",
+    "shortDescription": "Démarre le moteur LanguageTool local pour Firefox.",
+    "longDescription": "Compagnon multiplateforme d'Eloquent Local Assistant. Il gère un serveur LanguageTool strictement local utilisé par l'extension Firefox.",
+    "copyright": "Copyright 2026 Othman Benbrahim and contributors",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  }
+}

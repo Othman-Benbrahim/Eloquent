@@ -1,0 +1,20 @@
+[package]
+name = "eloquent-local-companion"
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.77.2"
+license = "GPL-3.0-only"
+description = "Desktop companion for Eloquent Local Assistant"
+
+[lib]
+name = "eloquent_local_companion"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+eloquent-companion-core = { path = "../core" }
+serde = { version = "1", features = ["derive"] }
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-autostart = "2"

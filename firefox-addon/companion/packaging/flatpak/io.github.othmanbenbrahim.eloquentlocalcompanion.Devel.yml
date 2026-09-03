@@ -1,0 +1,31 @@
+id: io.github.othmanbenbrahim.eloquentlocalcompanion
+runtime: org.gnome.Platform
+runtime-version: '49'
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: eloquent-local-companion
+finish-args:
+  - --share=ipc
+  - --share=network
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin
+  env:
+    CARGO_HOME: /run/build/eloquent/cargo
+modules:
+  - name: eloquent
+    buildsystem: simple
+    build-commands:
+      - cargo build --manifest-path companion/src-tauri/Cargo.toml --release --locked
+      - install -Dm755 companion/target/release/eloquent-local-companion /app/bin/eloquent-local-companion
+      - cp -a companion/src-tauri/resources/runtime /app/bin/runtime
+      - cp -a companion/src-tauri/resources/languagetool /app/bin/languagetool
+      - install -Dm644 companion/src-tauri/icons/128x128.png /app/share/icons/hicolor/128x128/apps/io.github.othmanbenbrahim.eloquentlocalcompanion.png
+      - install -Dm644 companion/packaging/flatpak/io.github.othmanbenbrahim.eloquentlocalcompanion.desktop /app/share/applications/io.github.othmanbenbrahim.eloquentlocalcompanion.desktop
+      - install -Dm644 companion/packaging/flatpak/io.github.othmanbenbrahim.eloquentlocalcompanion.metainfo.xml /app/share/metainfo/io.github.othmanbenbrahim.eloquentlocalcompanion.metainfo.xml
+    sources:
+      - type: dir
+        path: ../../..

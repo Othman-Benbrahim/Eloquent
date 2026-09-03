@@ -41,7 +41,7 @@ Pour une distribution privée hors catalogue, utilisez :
 
 ## 4. Fournir les sources au réviseur
 
-Si le portail AMO le demande, téléversez `dist/eloquent-local-assistant-0.1.0-source.zip` dans la section consacrée au code source. Les instructions de construction sont dans le README et aucune étape de minification ou compilation n’est requise.
+Si le portail AMO le demande, téléversez `dist/eloquent-local-assistant-0.1.6-source.zip` dans la section consacrée au code source. Les instructions de construction sont dans le README et aucune étape de minification ou compilation n’est requise.
 
 ## 5. Publier le code et une release GitHub
 

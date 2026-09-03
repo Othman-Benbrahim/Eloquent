@@ -22,8 +22,8 @@
   "version": {
     "license": "GPL-3.0-only",
     "release_notes": {
-      "fr": "Première version de développement : correction locale, prise en charge des champs classiques et contenteditable, suggestions cliquables et réglages par site.",
-      "en-US": "First development version: local proofreading, regular and contenteditable fields, clickable suggestions, and per-site settings."
+      "fr": "Correction du remplacement direct dans ChatGPT : les clics sur les paragraphes internes sont maintenant rattachés au véritable hôte d'édition.",
+      "en-US": "Fixed direct replacement in ChatGPT by resolving clicks on inner paragraphs to the actual editing host."
     }
   }
 }

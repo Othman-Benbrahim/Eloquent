@@ -1,0 +1,116 @@
+name: Build Eloquent Local Companion
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "firefox-addon/companion/**"
+      - ".github/workflows/companion-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            resource_os: windows
+            resource_arch: x64
+            bundles: nsis,msi
+            artifact: windows-x64
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            resource_os: linux
+            resource_arch: x64
+            bundles: deb,rpm,appimage
+            artifact: linux-x64
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            resource_os: mac
+            resource_arch: x64
+            bundles: app,dmg
+            artifact: macos-intel
+          - os: macos-15
+            target: aarch64-apple-darwin
+            resource_os: mac
+            resource_arch: aarch64
+            bundles: app,dmg
+            artifact: macos-apple-silicon
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: firefox-addon/companion/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+          components: rustfmt
+
+      - name: Install Linux prerequisites
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Validate core
+        working-directory: firefox-addon/companion
+        run: cargo test -p eloquent-companion-core --all-targets
+
+      - name: Install frontend tooling
+        working-directory: firefox-addon/companion
+        run: npm ci
+
+      - name: Prepare bundled Java and LanguageTool
+        shell: pwsh
+        run: ./firefox-addon/companion/scripts/Prepare-Resources.ps1 -TargetOS ${{ matrix.resource_os }} -Architecture ${{ matrix.resource_arch }}
+
+      - name: Build native packages
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: firefox-addon/companion
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: eloquent-companion-${{ matrix.artifact }}
+          path: firefox-addon/companion/target/${{ matrix.target }}/release/bundle/**
+          if-no-files-found: error
+
+  flatpak:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Flatpak tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Prepare bundled Java and LanguageTool
+        shell: pwsh
+        run: ./firefox-addon/companion/scripts/Prepare-Resources.ps1 -TargetOS linux -Architecture x64
+
+      - name: Build Flatpak
+        run: ./firefox-addon/companion/scripts/build-flatpak.sh
+
+      - name: Upload Flatpak
+        uses: actions/upload-artifact@v4
+        with:
+          name: eloquent-companion-linux-flatpak-x64
+          path: firefox-addon/companion/target/bundle/flatpak/*.flatpak
+          if-no-files-found: error

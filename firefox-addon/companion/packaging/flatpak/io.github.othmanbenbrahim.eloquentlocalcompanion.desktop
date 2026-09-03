@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Eloquent Local Companion
+Comment=Gérer le moteur LanguageTool local de Firefox
+Exec=eloquent-local-companion
+Icon=io.github.othmanbenbrahim.eloquentlocalcompanion
+Terminal=false
+Categories=Utility;Office;
+StartupNotify=true
+

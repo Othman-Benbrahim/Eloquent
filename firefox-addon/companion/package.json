@@ -1,0 +1,17 @@
+{
+  "name": "eloquent-local-companion",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Tauri desktop companion for Eloquent Local Assistant",
+  "license": "GPL-3.0-only",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "validate": "node scripts/validate.mjs",
+    "test:core": "cargo test -p eloquent-companion-core --all-targets"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

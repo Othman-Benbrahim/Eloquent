@@ -9,6 +9,10 @@ test("the default endpoint is a loopback LanguageTool v2 endpoint", () => {
   assert.equal(core.normalizeEndpoint(core.DEFAULT_SETTINGS.endpoint), "http://127.0.0.1:8081/v2");
 });
 
+test("new installations use the thorough proofreading level", () => {
+  assert.equal(core.DEFAULT_SETTINGS.level, "picky");
+});
+
 test("only loopback server endpoints are accepted", () => {
   assert.equal(core.normalizeEndpoint("http://localhost:8081/v2/"), "http://localhost:8081/v2");
   assert.equal(core.normalizeEndpoint("http://[::1]:8081/v2"), "http://[::1]:8081/v2");
@@ -57,6 +61,39 @@ test("LanguageTool request body is local-server compatible", () => {
   assert.equal(body.get("level"), "picky");
 });
 
+test("automatic language selection detects French without LanguageTool auto mode", () => {
+  const language = core.resolveLanguage("Ceci est un teste.", core.DEFAULT_SETTINGS, {
+    pageLanguage: "en-US",
+  });
+  assert.equal(language, "fr-FR");
+});
+
+test("automatic language selection detects English and keeps the preferred variant", () => {
+  const language = core.resolveLanguage("This is a simple test.", {
+    ...core.DEFAULT_SETTINGS,
+    preferredVariants: "fr-FR,en-GB",
+  });
+  assert.equal(language, "en-GB");
+});
+
+test("an editor language hint resolves ambiguous short text", () => {
+  assert.equal(
+    core.resolveLanguage("xyz", core.DEFAULT_SETTINGS, { editorLanguage: "de" }),
+    "de-DE",
+  );
+});
+
+test("automatic language selection falls back to French", () => {
+  assert.equal(core.resolveLanguage("xyz", core.DEFAULT_SETTINGS), "fr-FR");
+});
+
+test("an explicitly configured language always wins", () => {
+  assert.equal(
+    core.resolveLanguage("Ceci est français.", { ...core.DEFAULT_SETTINGS, language: "en-GB" }),
+    "en-GB",
+  );
+});
+
 test("LanguageTool matches are normalized and unsafe entries removed", () => {
   const matches = core.normalizeMatches({
     matches: [
@@ -94,4 +131,30 @@ test("replacement uses LanguageTool UTF-16 offsets", () => {
     core.applyReplacementToText("Ceci est un teste.", { offset: 12, length: 5 }, "test"),
     "Ceci est un test.",
   );
+});
+
+test("French contextual proofreading catches the noun typo in 'un teste'", () => {
+  const matches = core.contextualMatches("Ceci est un teste.", "fr-FR");
+  assert.equal(matches.length, 1);
+  assert.equal(matches[0].offset, 12);
+  assert.equal(matches[0].length, 5);
+  assert.deepEqual(matches[0].replacements, ["test"]);
+});
+
+test("French contextual proofreading keeps the valid verb form 'teste'", () => {
+  assert.deepEqual(core.contextualMatches("Je teste le programme.", "fr-FR"), []);
+});
+
+test("contextual and server matches are merged without duplicate underlines", () => {
+  const contextual = core.contextualMatches("Ceci est un teste.", "fr-FR");
+  const server = [{
+    id: "server",
+    offset: 16,
+    length: 1,
+    message: "Retirez cette lettre.",
+    replacements: [""],
+  }];
+  const matches = core.mergeMatches(server, contextual);
+  assert.equal(matches.length, 1);
+  assert.deepEqual(matches[0].replacements, ["test", ""]);
 });

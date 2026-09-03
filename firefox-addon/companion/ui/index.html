@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Eloquent Local Companion</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="brand">
+      <div class="brand-mark" aria-hidden="true">E</div>
+      <div>
+        <p class="eyebrow">Eloquent</p>
+        <h1>Local Companion</h1>
+        <p class="subtitle">Le moteur LanguageTool de Firefox, géré localement.</p>
+      </div>
+    </header>
+
+    <section class="status-card" aria-labelledby="status-title">
+      <div class="status-copy">
+        <div class="status-heading">
+          <span id="status-dot" class="status-dot unknown" aria-hidden="true"></span>
+          <div>
+            <p class="section-label">Moteur local</p>
+            <h2 id="status-title">Vérification…</h2>
+          </div>
+        </div>
+        <p id="status-message" class="status-message" role="status">Connexion au compagnon en cours.</p>
+        <div class="endpoint-row">
+          <code id="endpoint">http://127.0.0.1:8082/v2</code>
+          <button id="select-endpoint" class="quiet-button" type="button">Sélectionner</button>
+        </div>
+      </div>
+      <div class="status-actions">
+        <button id="start-engine" class="primary-button" type="button">Démarrer</button>
+        <button id="stop-engine" class="secondary-button" type="button">Arrêter</button>
+        <button id="refresh-status" class="icon-button" type="button" aria-label="Actualiser l'état" title="Actualiser">↻</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="configuration-title">
+      <div class="panel-heading">
+        <div>
+          <p class="section-label">Configuration</p>
+          <h2 id="configuration-title">Java et LanguageTool</h2>
+        </div>
+        <span class="local-pill">100 % local</span>
+      </div>
+
+      <form id="settings-form">
+        <label class="field compact-field">
+          <span>Port local</span>
+          <input id="port" name="port" type="number" min="1024" max="65535" required inputmode="numeric">
+          <small>Utilisez le même port dans les options de l’extension Firefox.</small>
+        </label>
+
+        <label class="field">
+          <span>Java</span>
+          <input id="java-path" name="javaPath" type="text" spellcheck="false" placeholder="Détection automatique via JAVA_HOME, PATH ou runtime/">
+          <small>Chemin vers <code>java.exe</code>, <code>java</code>, ou vers le dossier du runtime.</small>
+        </label>
+
+        <label class="field">
+          <span>LanguageTool</span>
+          <input id="languagetool-path" name="languageToolPath" type="text" spellcheck="false" placeholder="Dossier contenant languagetool-server.jar">
+          <small>Le compagnon cherche aussi dans ses ressources et dans son dossier de données.</small>
+        </label>
+
+        <div class="toggles">
+          <label class="toggle-row">
+            <span>
+              <strong>Démarrer le moteur avec l’application</strong>
+              <small>LanguageTool devient disponible dès l’ouverture du compagnon.</small>
+            </span>
+            <input id="start-engine-on-launch" type="checkbox">
+          </label>
+          <label class="toggle-row">
+            <span>
+              <strong>Ouvrir le compagnon avec la session</strong>
+              <small>Fonctionne sous Windows, Linux et macOS.</small>
+            </span>
+            <input id="start-app-on-login" type="checkbox">
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button id="save-settings" class="primary-button" type="submit">Enregistrer</button>
+          <span id="save-result" class="save-result" aria-live="polite"></span>
+        </div>
+      </form>
+    </section>
+
+    <section class="details" aria-labelledby="details-title">
+      <div>
+        <p class="section-label">Diagnostic</p>
+        <h2 id="details-title">Chemins détectés</h2>
+      </div>
+      <dl>
+        <div><dt>Java</dt><dd id="detected-java">—</dd></div>
+        <div><dt>Serveur</dt><dd id="detected-jar">—</dd></div>
+        <div><dt>Processus</dt><dd id="process-id">—</dd></div>
+      </dl>
+      <p class="privacy-note">Le compagnon n’envoie aucun texte sur Internet. Il se connecte uniquement à l’adresse de bouclage de votre ordinateur.</p>
+      <p class="privacy-note">Fermer cette fenêtre masque l’application dans la zone de notification afin que la correction reste disponible. Utilisez le menu de l’icône Eloquent pour quitter complètement.</p>
+    </section>
+  </main>
+</body>
+</html>

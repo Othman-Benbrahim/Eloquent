@@ -1,5 +1,13 @@
 dist/
 node_modules/
+companion/**/target/
+companion/node_modules/
+companion/flatpak-build/
+companion/flatpak-repo/
+companion/src-tauri/resources/runtime/*
+companion/src-tauri/resources/languagetool/*
+!companion/src-tauri/resources/runtime/README.txt
+!companion/src-tauri/resources/languagetool/README.txt
 *.log
 web-ext-artifacts/
 .DS_Store

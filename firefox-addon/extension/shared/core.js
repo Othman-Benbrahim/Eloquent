@@ -17,7 +17,7 @@
     endpoint: "http://127.0.0.1:8081/v2",
     language: "auto",
     preferredVariants: "fr-FR,en-US",
-    level: "default",
+    level: "picky",
     delayMs: 650,
     minTextLength: 3,
     maxTextLength: 20000,
@@ -25,6 +25,45 @@
   });
 
   const SUPPORTED_LEVELS = new Set(["default", "picky"]);
+  const LANGUAGE_DEFAULTS = Object.freeze({
+    fr: "fr-FR",
+    en: "en-US",
+    de: "de-DE",
+    es: "es",
+    it: "it",
+    pt: "pt-PT",
+  });
+  const LANGUAGE_MARKERS = Object.freeze({
+    fr: new Set([
+      "ai", "au", "aux", "avec", "avoir", "bonjour", "car", "ce", "ceci", "ces", "cette",
+      "comme", "dans", "de", "des", "donc", "du", "elle", "en", "est", "et", "faire", "fait",
+      "il", "ils", "je", "la", "le", "les", "mais", "mes", "mon", "ne", "nous", "on", "ou",
+      "où", "pas", "plus", "pour", "que", "qui", "sa", "se", "ses", "sont", "sur", "très",
+      "tu", "un", "une", "vous", "ça", "être",
+    ]),
+    en: new Set([
+      "a", "about", "am", "an", "and", "are", "as", "be", "been", "but", "do", "does", "for",
+      "from", "has", "have", "he", "hello", "i", "in", "is", "it", "my", "not", "of", "on",
+      "or", "our", "she", "that", "the", "their", "these", "they", "this", "to", "was", "we",
+      "were", "with", "you", "your",
+    ]),
+    de: new Set([
+      "aber", "auch", "auf", "das", "der", "die", "ein", "eine", "er", "es", "für", "hallo",
+      "ich", "im", "ist", "mit", "nicht", "sie", "sind", "und", "von", "was", "wir", "zu",
+    ]),
+    es: new Set([
+      "al", "con", "de", "del", "el", "ella", "en", "es", "esta", "gracias", "hola", "la", "las",
+      "los", "no", "para", "pero", "por", "que", "se", "son", "un", "una", "y", "yo",
+    ]),
+    it: new Set([
+      "che", "ciao", "con", "da", "di", "e", "gli", "il", "in", "io", "la", "le", "ma", "non",
+      "per", "sono", "un", "una",
+    ]),
+    pt: new Set([
+      "as", "com", "da", "de", "do", "e", "ela", "ele", "em", "eu", "não", "obrigado", "oi", "os",
+      "para", "por", "que", "se", "são", "um", "uma",
+    ]),
+  });
 
   function clampInteger(value, minimum, maximum, fallback) {
     const parsed = Number.parseInt(value, 10);
@@ -64,6 +103,82 @@
 
   function normalizeDomain(domain) {
     return String(domain || "").trim().toLowerCase().replace(/^www\./, "");
+  }
+
+  function preferredVariant(base, preferredVariants) {
+    const variants = String(preferredVariants || "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    return variants.find((value) => value.toLowerCase().startsWith(`${base}-`))
+      || LANGUAGE_DEFAULTS[base]
+      || "fr-FR";
+  }
+
+  function normalizeLanguageTag(value, preferredVariants = "") {
+    const raw = String(value || "").trim().replace(/_/g, "-");
+    if (!raw || raw.toLowerCase() === "auto") return "";
+    const [base] = raw.toLowerCase().split("-");
+    if (!LANGUAGE_DEFAULTS[base]) return "";
+
+    if (base === "en") {
+      if (/^en-gb\b/i.test(raw)) return "en-GB";
+      return preferredVariant("en", preferredVariants);
+    }
+    if (base === "fr") {
+      if (/^fr-ca\b/i.test(raw)) return "fr-CA";
+      return preferredVariant("fr", preferredVariants);
+    }
+    if (base === "pt") {
+      if (/^pt-br\b/i.test(raw)) return "pt-BR";
+      return preferredVariant("pt", preferredVariants);
+    }
+    return LANGUAGE_DEFAULTS[base];
+  }
+
+  function languageBase(value) {
+    return String(value || "").toLowerCase().split("-")[0];
+  }
+
+  function detectLanguage(text, hints = {}, preferredVariants = DEFAULT_SETTINGS.preferredVariants) {
+    const source = String(text || "").toLocaleLowerCase();
+    const scores = Object.fromEntries(Object.keys(LANGUAGE_MARKERS).map((base) => [base, 0]));
+    const tokens = source.match(/[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*/gu) || [];
+
+    for (const token of tokens) {
+      const parts = token.split(/['’]/).filter(Boolean);
+      for (const part of [token, ...parts]) {
+        for (const [base, markers] of Object.entries(LANGUAGE_MARKERS)) {
+          if (markers.has(part)) scores[base] += 2;
+        }
+      }
+    }
+
+    if (/[œæçàâêëîïôùûÿ]/u.test(source)) scores.fr += 3;
+    if (/[äöüß]/u.test(source)) scores.de += 3;
+    if (/[ñ¿¡]/u.test(source)) scores.es += 3;
+    if (/[ãõ]/u.test(source)) scores.pt += 3;
+
+    const ranked = Object.entries(scores).sort((left, right) => right[1] - left[1]);
+    const [bestBase, bestScore] = ranked[0];
+    const secondScore = ranked[1][1];
+    if (bestScore >= 2 && bestScore - secondScore >= 2) {
+      return preferredVariant(bestBase, preferredVariants);
+    }
+
+    const editorHint = normalizeLanguageTag(hints.editorLanguage, preferredVariants);
+    if (editorHint) return editorHint;
+    const pageHint = normalizeLanguageTag(hints.pageLanguage, preferredVariants);
+    if (pageHint) return pageHint;
+
+    return preferredVariant("fr", preferredVariants);
+  }
+
+  function resolveLanguage(text, settings, hints = {}) {
+    const safe = mergeSettings(settings);
+    const configured = normalizeLanguageTag(safe.language, safe.preferredVariants);
+    if (configured) return configured;
+    return detectLanguage(text, hints, safe.preferredVariants);
   }
 
   function mergeSettings(input) {
@@ -171,17 +286,89 @@
     return `${source.slice(0, start)}${String(replacement)}${source.slice(start + length)}`;
   }
 
+  function contextualMatches(text, language) {
+    const source = String(text || "");
+    if (languageBase(language) !== "fr") return [];
+
+    const rules = [
+      {
+        expression: /\b(?:un|le|ce|du|au)\s+(teste)\b/giu,
+        replacement: "test",
+        message: "Dans ce contexte, le nom s’écrit « test ».",
+        ruleId: "LOCAL_FR_NOUN_TEST",
+      },
+      {
+        expression: /\b(?:des|les|ces|plusieurs)\s+(testes)\b/giu,
+        replacement: "tests",
+        message: "Dans ce contexte, le pluriel du nom s’écrit « tests ».",
+        ruleId: "LOCAL_FR_NOUN_TESTS",
+      },
+    ];
+    const matches = [];
+
+    for (const rule of rules) {
+      for (const result of source.matchAll(rule.expression)) {
+        const target = result[1];
+        const offset = result.index + result[0].lastIndexOf(target);
+        const replacement = /^[A-ZÀ-ÖØ-Þ]/u.test(target)
+          ? `${rule.replacement[0].toUpperCase()}${rule.replacement.slice(1)}`
+          : rule.replacement;
+        matches.push({
+          id: `${rule.ruleId}:${offset}:${target.length}`,
+          offset,
+          length: target.length,
+          message: rule.message,
+          shortMessage: "",
+          replacements: [replacement],
+          ruleId: rule.ruleId,
+          category: "Orthographe",
+          issueType: "misspelling",
+        });
+      }
+    }
+    return matches;
+  }
+
+  function mergeMatches(primary, supplemental) {
+    const merged = [];
+    const candidates = [...(supplemental || []), ...(primary || [])]
+      .sort((left, right) => left.offset - right.offset || right.length - left.length);
+
+    for (const candidate of candidates) {
+      const overlapping = merged.find((existing) =>
+        candidate.offset < existing.offset + existing.length
+        && existing.offset < candidate.offset + candidate.length,
+      );
+      if (!overlapping) {
+        merged.push({ ...candidate, replacements: [...candidate.replacements] });
+        continue;
+      }
+      overlapping.replacements = [...new Set([
+        ...overlapping.replacements,
+        ...candidate.replacements,
+      ])].slice(0, 8);
+    }
+
+    return merged.sort((left, right) => left.offset - right.offset || right.length - left.length);
+  }
+
   return Object.freeze({
     DEFAULT_SETTINGS,
     applyReplacementToText,
     buildCheckBody,
+    contextualMatches,
     createSegments,
+    detectLanguage,
     isDomainEnabled,
     isLoopbackHostname,
+    languageBase,
     mergeSettings,
+    mergeMatches,
     normalizeDomain,
     normalizeEndpoint,
+    normalizeLanguageTag,
     normalizeMatches,
+    resolveLanguage,
     setDomainEnabled,
   });
 });

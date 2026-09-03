@@ -68,17 +68,25 @@ async function checkText(message, sender) {
     };
   }
 
-  const body = core.buildCheckBody(text, settings);
+  const language = core.resolveLanguage(text, settings, {
+    editorLanguage: message.editorLanguage,
+    pageLanguage: message.pageLanguage,
+  });
+  const body = core.buildCheckBody(text, { ...settings, language });
   const payload = await requestLocalServer("/check", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
     body,
   });
 
+  const serverMatches = core.normalizeMatches(payload, text.length);
+  const supplementalMatches = core.contextualMatches(text, language);
+
   return {
     ok: true,
-    matches: core.normalizeMatches(payload, text.length),
-    language: payload.language || null,
+    matches: core.mergeMatches(serverMatches, supplementalMatches),
+    language,
+    detectedLanguage: payload.language || null,
     software: payload.software || null,
     frameId: sender.frameId,
   };

@@ -40,7 +40,7 @@
         <div class="grid">
           <label for="language">Langue
             <select id="language" name="language">
-              <option value="auto">Détection automatique</option>
+              <option value="auto">Détection locale (français prioritaire)</option>
               <option value="fr">Français</option>
               <option value="fr-FR">Français (France)</option>
               <option value="en-US">Anglais (États-Unis)</option>
@@ -54,7 +54,7 @@
           <label for="level">Niveau
             <select id="level" name="level">
               <option value="default">Normal</option>
-              <option value="picky">Exigeant</option>
+              <option value="picky">Exigeant (recommandé)</option>
             </select>
           </label>
           <label for="delay-ms">Délai après la frappe
@@ -69,6 +69,7 @@
             <input id="preferred-variants" name="preferredVariants" type="text" spellcheck="false" placeholder="fr-FR,en-US">
           </label>
         </div>
+        <p class="hint">En mode automatique, la langue est choisie à partir du texte et de l’attribut <code>lang</code> du champ. Le français est utilisé quand le texte est trop court ou ambigu.</p>
       </section>
 
       <section class="card privacy" aria-labelledby="privacy-title">
