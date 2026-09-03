@@ -22,12 +22,6 @@ jobs:
             resource_arch: x64
             bundles: nsis,msi
             artifact: windows-x64
-          - os: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
-            resource_os: linux
-            resource_arch: x64
-            bundles: deb,rpm,appimage
-            artifact: linux-x64
           - os: macos-15-intel
             target: x86_64-apple-darwin
             resource_os: mac
@@ -56,30 +50,6 @@ jobs:
         with:
           targets: ${{ matrix.target }}
           components: rustfmt
-
-      - name: Install Linux prerequisites
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            curl \
-            wget \
-            file \
-            libwebkit2gtk-4.1-dev \
-            libxdo-dev \
-            libssl-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            libfuse2 \
-            libglib2.0-0 \
-            libx11-6 \
-            libxext6 \
-            libxcb1
-
-          echo "APPIMAGE_EXTRACT_AND_RUN=1" >> "$GITHUB_ENV"
-          echo "NO_STRIP=true" >> "$GITHUB_ENV"
 
       - name: Validate core
         working-directory: firefox-addon/companion
