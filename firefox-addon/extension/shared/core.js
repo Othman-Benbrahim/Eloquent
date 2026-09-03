@@ -14,7 +14,7 @@
 
   const DEFAULT_SETTINGS = Object.freeze({
     enabled: true,
-    endpoint: "http://127.0.0.1:8081/v2",
+    endpoint: "http://127.0.0.1:8082/v2",
     language: "auto",
     preferredVariants: "fr-FR,en-US",
     level: "picky",
@@ -286,6 +286,10 @@
     return `${source.slice(0, start)}${String(replacement)}${source.slice(start + length)}`;
   }
 
+  function shouldUseRichEditorFallback(result = {}) {
+    return !result.commandAccepted && !result.inputObserved && !result.textChanged;
+  }
+
   function contextualMatches(text, language) {
     const source = String(text || "");
     if (languageBase(language) !== "fr") return [];
@@ -370,5 +374,6 @@
     normalizeMatches,
     resolveLanguage,
     setDomainEnabled,
+    shouldUseRichEditorFallback,
   });
 });

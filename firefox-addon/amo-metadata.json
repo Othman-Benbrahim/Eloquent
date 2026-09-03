@@ -22,8 +22,8 @@
   "version": {
     "license": "GPL-3.0-only",
     "release_notes": {
-      "fr": "Correction du remplacement direct dans ChatGPT : les clics sur les paragraphes internes sont maintenant rattachés au véritable hôte d'édition.",
-      "en-US": "Fixed direct replacement in ChatGPT by resolving clicks on inner paragraphs to the actual editing host."
+      "fr": "Compatibilité renforcée avec LinkedIn et correction des mots dupliqués lors d'un remplacement dans les éditeurs contrôlés comme Facebook.",
+      "en-US": "Improved LinkedIn editor compatibility and prevented duplicate words when applying replacements in controlled editors such as Facebook."
     }
   }
 }

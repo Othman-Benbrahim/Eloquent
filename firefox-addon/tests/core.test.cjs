@@ -6,7 +6,7 @@ const assert = require("node:assert/strict");
 const core = require("../extension/shared/core.js");
 
 test("the default endpoint is a loopback LanguageTool v2 endpoint", () => {
-  assert.equal(core.normalizeEndpoint(core.DEFAULT_SETTINGS.endpoint), "http://127.0.0.1:8081/v2");
+  assert.equal(core.normalizeEndpoint(core.DEFAULT_SETTINGS.endpoint), "http://127.0.0.1:8082/v2");
 });
 
 test("new installations use the thorough proofreading level", () => {
@@ -131,6 +131,13 @@ test("replacement uses LanguageTool UTF-16 offsets", () => {
     core.applyReplacementToText("Ceci est un teste.", { offset: 12, length: 5 }, "test"),
     "Ceci est un test.",
   );
+});
+
+test("a rich editor fallback is skipped as soon as the native transaction is accepted", () => {
+  assert.equal(core.shouldUseRichEditorFallback({ commandAccepted: true }), false);
+  assert.equal(core.shouldUseRichEditorFallback({ inputObserved: true }), false);
+  assert.equal(core.shouldUseRichEditorFallback({ textChanged: true }), false);
+  assert.equal(core.shouldUseRichEditorFallback({}), true);
 });
 
 test("French contextual proofreading catches the noun typo in 'un teste'", () => {

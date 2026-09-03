@@ -2,7 +2,7 @@
 
 ## Préparation
 
-1. démarrer LanguageTool local sur `127.0.0.1:8081` ;
+1. démarrer Eloquent Local Companion et vérifier LanguageTool sur `127.0.0.1:8082` ;
 2. lancer `.\scripts\Test-Firefox.ps1` ou `web-ext run` ;
 3. ouvrir les paramètres et vérifier que le test de connexion réussit.
 
@@ -15,6 +15,8 @@
 | Ouvrir la proposition en cliquant sur le mot, puis choisir « test » | La correction est appliquée comme lorsqu'elle est ouverte depuis la bulle |
 | Tester un éditeur React, ProseMirror ou similaire | L'ancienne valeur ne revient pas dans les 200 ms suivant la correction |
 | Cliquer sur un mot contenu dans un `<p>` interne à ChatGPT | La proposition et le remplacement ciblent la racine `contenteditable` |
+| Saisir puis corriger une faute dans l’éditeur de publication ou de commentaire LinkedIn | Le champ est détecté, souligné et corrigé |
+| Corriger un mot dans l’éditeur Facebook | Le mot est remplacé une seule fois et ne se retrouve jamais dupliqué |
 | Corriger « un teste » en « un test » | Le `e` disparaît réellement et ne revient pas après la sauvegarde automatique du site |
 | Écrire « Je teste le programme. » | Aucune règle contextuelle ne signale la forme verbale correcte |
 | Cliquer directement sur un mot souligné dans un `textarea` | La correction de ce mot s’ouvre près du clic |

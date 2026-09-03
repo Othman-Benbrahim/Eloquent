@@ -4,7 +4,7 @@ Dernière mise à jour : 3 septembre 2026.
 
 Eloquent Local Assistant ne collecte, ne conserve, ne vend et ne transmet aucune donnée personnelle à son éditeur ou à un service tiers.
 
-Le contenu des champs de texte est envoyé uniquement, à la demande de l’utilisateur pendant la saisie, au serveur LanguageTool configuré sur la machine locale. L’extension valide l’adresse avant chaque enregistrement et n’accepte que les hôtes de bouclage `localhost`, `127.0.0.1` et `::1`. L’adresse par défaut est `http://127.0.0.1:8081/v2`.
+Le contenu des champs de texte est envoyé uniquement, à la demande de l’utilisateur pendant la saisie, au serveur LanguageTool configuré sur la machine locale. L’extension valide l’adresse avant chaque enregistrement et n’accepte que les hôtes de bouclage `localhost`, `127.0.0.1` et `::1`. L’adresse par défaut est `http://127.0.0.1:8082/v2`.
 
 Les seuls réglages conservés dans le stockage local de Firefox sont : activation, adresse locale, langue, variantes linguistiques, niveau de correction, délai de frappe, limites de longueur et liste des domaines désactivés. Ils ne quittent pas le profil Firefox, sauf si l’utilisateur utilise lui-même une fonction de synchronisation ou de sauvegarde externe à cette extension.
 

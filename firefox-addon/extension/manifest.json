@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Eloquent Local Assistant",
   "short_name": "Eloquent",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Correction grammaticale et orthographique locale dans les champs de texte de Firefox.",
   "author": "Othman Benbrahim and contributors",
   "homepage_url": "https://github.com/Othman-Benbrahim/Eloquent",

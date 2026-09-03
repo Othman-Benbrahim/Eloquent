@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## 0.1.7 — 2026-09-03
+
+- Détection renforcée des éditeurs riches dynamiques utilisés par LinkedIn.
+- Reconnaissance explicite des éditeurs Quill, ProseMirror, Lexical et Slate.
+- Recherche de l’hôte d’édition à partir de la sélection lorsque le focus de la page est imprécis.
+- Nouvelle vérification après `beforeinput`, `keyup` et mutation du contenu.
+- Une seule transaction de remplacement est désormais autorisée par clic dans un éditeur riche.
+- Suppression du second remplacement de secours lorsque la commande native a déjà été acceptée de façon asynchrone, ce qui évite les mots dupliqués sur Facebook.
+- Reprises conservées uniquement pour les champs natifs, où l’affectation de la valeur complète reste idempotente.
+- Port LanguageTool par défaut aligné sur le compagnon publié : `127.0.0.1:8082`.
+
 ## 0.1.6 — 2026-09-03
 
 - Correction ciblée de l'éditeur ChatGPT observée dans l'enregistrement utilisateur.

@@ -17,6 +17,12 @@
     }
   })());
   const TEXT_INPUT_TYPES = new Set(["text", "search", "email", "url", "tel"]);
+  const RICH_EDITOR_SELECTOR = [
+    ".ql-editor",
+    ".ProseMirror",
+    "[data-lexical-editor='true']",
+    "[data-slate-editor='true']",
+  ].join(",");
   let settings = core.mergeSettings(core.DEFAULT_SETTINGS);
   let activeEditor = null;
   let activeText = "";
@@ -35,6 +41,14 @@
     return element instanceof HTMLInputElement && TEXT_INPUT_TYPES.has(element.type.toLowerCase());
   }
 
+  function hasRichEditorMarker(element) {
+    try {
+      return element.matches(RICH_EDITOR_SELECTOR);
+    } catch {
+      return false;
+    }
+  }
+
   function isEditable(element) {
     if (!(element instanceof Element)) return false;
     if (element instanceof HTMLTextAreaElement || isTextInput(element)) {
@@ -43,6 +57,11 @@
     const hasContentEditable = element.hasAttribute("contenteditable");
     const contentEditable = (element.getAttribute("contenteditable") || "").toLowerCase();
     if (contentEditable === "false") return false;
+    if (hasRichEditorMarker(element)
+      && element.getAttribute("aria-disabled") !== "true"
+      && element.getAttribute("aria-readonly") !== "true") {
+      return true;
+    }
     if (hasContentEditable
       && (contentEditable === "" || contentEditable === "true" || contentEditable === "plaintext-only")) {
       return true;
@@ -99,12 +118,20 @@
     return active;
   }
 
+  function findEditableFromSelection() {
+    const selection = document.getSelection();
+    const anchor = selection && selection.anchorNode;
+    if (!anchor) return null;
+    const element = anchor instanceof Element ? anchor : anchor.parentElement;
+    return findEditable(element);
+  }
+
   function findEditableFromEvent(event) {
     const path = typeof event.composedPath === "function" ? event.composedPath() : [event.target];
     const candidate = path.find((node) => node instanceof Element);
     const editor = findEditable(candidate);
     if (editor) return editor;
-    return findEditable(deepActiveElement());
+    return findEditableFromSelection() || findEditable(deepActiveElement());
   }
 
   function editorLanguage(editor) {
@@ -282,27 +309,39 @@
     const observeInput = () => {
       nativeInputObserved = true;
     };
-    editor.addEventListener("input", observeInput, { once: true });
+    editor.addEventListener("input", observeInput, { capture: true, once: true });
     try {
       inserted = editor.ownerDocument.execCommand("insertText", false, replacement);
     } catch {
       inserted = false;
     }
-    editor.removeEventListener("input", observeInput);
+    editor.removeEventListener("input", observeInput, true);
 
-    if (!inserted || editorText(editor) === beforeText) {
-      const fallback = selectReplacementRange(editor, offset, length);
-      if (!fallback) return false;
-      emitBeforeInput(editor, replacement);
-      fallback.range.deleteContents();
-      const textNode = editor.ownerDocument.createTextNode(replacement);
-      fallback.range.insertNode(textNode);
-      fallback.range.setStartAfter(textNode);
-      fallback.range.collapse(true);
-      fallback.selection.removeAllRanges();
-      fallback.selection.addRange(fallback.range);
+    const changedByCommand = editorText(editor) !== beforeText;
+    const useFallback = core.shouldUseRichEditorFallback({
+      commandAccepted: inserted,
+      inputObserved: nativeInputObserved,
+      textChanged: changedByCommand,
+    });
+    if (!useFallback) {
+      if (changedByCommand && !nativeInputObserved) emitInput(editor, replacement);
+      return true;
     }
-    if (!nativeInputObserved) emitInput(editor, replacement);
+
+    // La solution de secours n'est utilisée que si la commande native a été
+    // explicitement refusée et n'a produit ni saisie ni modification. Ainsi,
+    // un éditeur contrôlé qui applique la commande de façon asynchrone ne
+    // reçoit jamais une seconde transaction susceptible de dupliquer le mot.
+    const fallback = selectReplacementRange(editor, offset, length);
+    if (!fallback) return false;
+    fallback.range.deleteContents();
+    const textNode = editor.ownerDocument.createTextNode(replacement);
+    fallback.range.insertNode(textNode);
+    fallback.range.setStartAfter(textNode);
+    fallback.range.collapse(true);
+    fallback.selection.removeAllRanges();
+    fallback.selection.addRange(fallback.range);
+    emitInput(editor, replacement);
     return true;
   }
 
@@ -319,11 +358,12 @@
 
     const currentMatch = { ...match, offset };
     const expectedText = core.applyReplacementToText(originalText, currentMatch, replacement);
+    const textControl = editor instanceof HTMLTextAreaElement || isTextInput(editor);
     replacementEditors.add(editor);
     editor.focus({ preventScroll: true });
 
     try {
-      if (editor instanceof HTMLTextAreaElement || isTextInput(editor)) {
+      if (textControl) {
         applyTextControlReplacement(editor, expectedText, offset, match.length, replacement);
       } else {
         applyRichEditorReplacement(editor, offset, match.length, replacement);
@@ -332,24 +372,29 @@
       // ainsi le geste utilisateur et la sélection jusqu'au remplacement.
       resetVisibleResults(editor, editorText(editor));
 
-      // Certains frameworks réinjectent leur ancien état dans la micro-tâche
-      // qui suit le clic. On contrôle donc le résultat stabilisé et on rejoue
-      // l'opération native si la page a annulé le premier remplacement.
-      for (const delay of [0, 40, 160]) {
-        await waitForEditor(delay);
-        if (!isEditorConnected(editor)) break;
-        if (editorText(editor) === expectedText) continue;
-        const currentText = editorText(editor);
-        const retryOffset = locateMatchOffset(currentText, currentMatch, originalText);
-        if (retryOffset < 0) break;
-        const retryMatch = { ...currentMatch, offset: retryOffset };
-        const retryExpectedText = core.applyReplacementToText(currentText, retryMatch, replacement);
-        if (retryExpectedText !== expectedText) break;
-        editor.focus({ preventScroll: true });
-        if (editor instanceof HTMLTextAreaElement || isTextInput(editor)) {
+      if (textControl) {
+        // Réaffecter la valeur complète d'un champ natif est idempotent. Cette
+        // reprise reste donc sûre si un framework restaure momentanément son
+        // ancien état.
+        for (const delay of [0, 40, 160]) {
+          await waitForEditor(delay);
+          if (!isEditorConnected(editor)) break;
+          if (editorText(editor) === expectedText) continue;
+          const currentText = editorText(editor);
+          const retryOffset = locateMatchOffset(currentText, currentMatch, originalText);
+          if (retryOffset < 0) break;
+          const retryMatch = { ...currentMatch, offset: retryOffset };
+          const retryExpectedText = core.applyReplacementToText(currentText, retryMatch, replacement);
+          if (retryExpectedText !== expectedText) break;
+          editor.focus({ preventScroll: true });
           applyTextControlReplacement(editor, expectedText, retryOffset, match.length, replacement);
-        } else {
-          applyRichEditorReplacement(editor, retryOffset, match.length, replacement);
+        }
+      } else {
+        // Un éditeur riche reçoit exactement une transaction par clic. Nous
+        // laissons son modèle interne se stabiliser sans rejouer l'insertion.
+        for (const delay of [0, 40, 160]) {
+          await waitForEditor(delay);
+          if (!isEditorConnected(editor) || editorText(editor) === expectedText) break;
         }
       }
     } catch (error) {
@@ -791,6 +836,13 @@
     if (editor && !replacementEditors.has(editor)) scheduleCheck(editor, false, true);
   }, true);
 
+  document.addEventListener("beforeinput", (event) => {
+    const editor = findEditableFromEvent(event);
+    if (editor && !replacementEditors.has(editor)) {
+      setTimeout(() => scheduleCheck(editor, false, true), 0);
+    }
+  }, true);
+
   document.addEventListener("pointerdown", (event) => {
     if (eventComesFromOverlay(event)) return;
     const editor = findEditableFromEvent(event);
@@ -819,6 +871,11 @@
   document.addEventListener("keydown", (event) => {
     const editor = findEditableFromEvent(event);
     if (editor) scheduleCheck(editor);
+  }, true);
+
+  document.addEventListener("keyup", (event) => {
+    const editor = findEditableFromEvent(event);
+    if (editor && !replacementEditors.has(editor)) scheduleCheck(editor);
   }, true);
 
   document.addEventListener("compositionend", (event) => {
@@ -879,14 +936,19 @@
       activeMatches = [];
       overlay.hide();
     }
+    if (activeEditor
+      && !replacementEditors.has(activeEditor)
+      && editorText(activeEditor) !== activeText) {
+      scheduleCheck(activeEditor, false, true);
+    }
     if (!activeEditor) {
-      const editor = findEditable(deepActiveElement());
+      const editor = findEditableFromSelection() || findEditable(deepActiveElement());
       if (editor) scheduleCheck(editor);
     }
   });
   editorObserver.observe(document.documentElement, { childList: true, subtree: true });
 
   refreshSettings().catch((error) => console.warn("Eloquent settings", error));
-  const initialEditor = findEditable(deepActiveElement());
+  const initialEditor = findEditableFromSelection() || findEditable(deepActiveElement());
   if (initialEditor) scheduleCheck(initialEditor);
 })();

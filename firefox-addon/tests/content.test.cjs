@@ -28,6 +28,16 @@ test("legacy and ARIA-based online editors are recognized", () => {
   assert.match(contentScript, /document\.designMode === "on"/);
 });
 
+test("LinkedIn and other dynamic rich editors have explicit detection fallbacks", () => {
+  assert.match(contentScript, /\.ql-editor/);
+  assert.match(contentScript, /\.ProseMirror/);
+  assert.match(contentScript, /data-lexical-editor/);
+  assert.match(contentScript, /findEditableFromSelection/);
+  assert.match(contentScript, /addEventListener\("beforeinput"/);
+  assert.match(contentScript, /addEventListener\("keyup"/);
+  assert.match(contentScript, /editorText\(activeEditor\) !== activeText/);
+});
+
 test("clicks inside rich editors resolve to the editing host, not an inherited paragraph", () => {
   assert.match(contentScript, /const parent = composedParent\(element\)/);
   assert.match(contentScript, /!parent\.isContentEditable/);
@@ -68,6 +78,17 @@ test("a rejected replacement is retried and checked against the expected text", 
   assert.match(contentScript, /for \(const delay of \[0, 40, 160\]\)/);
   assert.match(contentScript, /editorText\(editor\) === expectedText\) continue/);
   assert.match(contentScript, /locateMatchOffset\(currentText, currentMatch, originalText\)/);
+});
+
+test("rich editors receive only one replacement transaction per click", () => {
+  assert.match(contentScript, /core\.shouldUseRichEditorFallback/);
+  assert.match(contentScript, /if \(!useFallback\)/);
+  assert.match(contentScript, /const textControl = editor instanceof HTMLTextAreaElement/);
+  assert.match(contentScript, /Un éditeur riche reçoit exactement une transaction par clic/);
+  assert.doesNotMatch(
+    contentScript,
+    /else \{\s*applyRichEditorReplacement\(editor, retryOffset/s,
+  );
 });
 
 test("suggestion clicks preserve the editor selection and use the rendered snapshot", () => {
