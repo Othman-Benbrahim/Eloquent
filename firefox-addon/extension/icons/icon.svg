@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Eloquent Local Assistant">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6d4aff"/>
+      <stop offset="1" stop-color="#3a1ca8"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#background)"/>
+  <path d="M35 29h58v14H51v14h36v14H51v14h43v14H35z" fill="#fff"/>
+  <path d="M31 108c15-8 29-8 43 0 9 5 17 5 25 0" fill="none" stroke="#ffcf4a" stroke-width="7" stroke-linecap="round"/>
+</svg>

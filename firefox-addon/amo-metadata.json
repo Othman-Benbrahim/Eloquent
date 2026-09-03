@@ -1,0 +1,29 @@
+{
+  "name": {
+    "fr": "Eloquent Local Assistant",
+    "en-US": "Eloquent Local Assistant"
+  },
+  "summary": {
+    "fr": "Corrige localement la grammaire et l’orthographe dans les champs de texte de Firefox.",
+    "en-US": "Checks grammar and spelling locally inside Firefox text fields."
+  },
+  "description": {
+    "fr": "Eloquent Local Assistant souligne les erreurs pendant la saisie et propose des corrections cliquables. Le texte est traité par un serveur LanguageTool exécuté sur votre propre ordinateur. Aucun compte et aucun service distant ne sont nécessaires.",
+    "en-US": "Eloquent Local Assistant underlines mistakes while you type and displays clickable corrections. Text is processed by a LanguageTool server running on your own computer. No account or remote service is required."
+  },
+  "categories": {
+    "firefox": ["language-support"]
+  },
+  "requires_payment": false,
+  "homepage": {
+    "fr": "https://github.com/Othman-Benbrahim/Eloquent",
+    "en-US": "https://github.com/Othman-Benbrahim/Eloquent"
+  },
+  "version": {
+    "license": "GPL-3.0-only",
+    "release_notes": {
+      "fr": "Première version de développement : correction locale, prise en charge des champs classiques et contenteditable, suggestions cliquables et réglages par site.",
+      "en-US": "First development version: local proofreading, regular and contenteditable fields, clickable suggestions, and per-site settings."
+    }
+  }
+}

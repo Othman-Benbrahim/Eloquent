@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Eloquent Local Assistant</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <img src="../icons/icon.svg" width="38" height="38" alt="">
+        <div>
+          <h1>Eloquent</h1>
+          <p>Correction locale</p>
+        </div>
+      </header>
+      <section id="page-state" hidden>
+        <p id="domain" class="domain"></p>
+        <label class="toggle-row" for="site-enabled">
+          <span>Activer sur ce site</span>
+          <input id="site-enabled" type="checkbox">
+        </label>
+        <p id="issue-count" class="status"></p>
+      </section>
+      <p id="unavailable" class="status">Chargement…</p>
+      <button id="open-options" type="button">Paramètres</button>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

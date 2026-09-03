@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Paramètres — Eloquent Local Assistant</title>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <img src="../icons/icon.svg" width="64" height="64" alt="">
+        <div>
+          <h1>Eloquent Local Assistant</h1>
+          <p>Correction locale et privée avec LanguageTool.</p>
+        </div>
+      </header>
+
+      <section class="card" aria-labelledby="server-title">
+        <h2 id="server-title">Serveur local</h2>
+        <label for="endpoint">Adresse LanguageTool</label>
+        <input id="endpoint" name="endpoint" type="url" spellcheck="false" autocomplete="off" required>
+        <p class="hint">Seules les adresses locales se terminant par <code>/v2</code> sont acceptées.</p>
+        <div class="actions">
+          <button id="test-server" type="button" class="secondary">Tester la connexion</button>
+          <output id="server-status" role="status"></output>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="proofreading-title">
+        <h2 id="proofreading-title">Correction</h2>
+        <label class="switch-row" for="enabled">
+          <span>
+            <strong>Activer la correction</strong>
+            <small>Vous pourrez aussi la désactiver séparément sur chaque site.</small>
+          </span>
+          <input id="enabled" name="enabled" type="checkbox">
+        </label>
+
+        <div class="grid">
+          <label for="language">Langue
+            <select id="language" name="language">
+              <option value="auto">Détection automatique</option>
+              <option value="fr">Français</option>
+              <option value="fr-FR">Français (France)</option>
+              <option value="en-US">Anglais (États-Unis)</option>
+              <option value="en-GB">Anglais (Royaume-Uni)</option>
+              <option value="de-DE">Allemand</option>
+              <option value="es">Espagnol</option>
+              <option value="it">Italien</option>
+              <option value="pt">Portugais</option>
+            </select>
+          </label>
+          <label for="level">Niveau
+            <select id="level" name="level">
+              <option value="default">Normal</option>
+              <option value="picky">Exigeant</option>
+            </select>
+          </label>
+          <label for="delay-ms">Délai après la frappe
+            <select id="delay-ms" name="delayMs">
+              <option value="350">0,35 seconde</option>
+              <option value="650">0,65 seconde</option>
+              <option value="1000">1 seconde</option>
+              <option value="1500">1,5 seconde</option>
+            </select>
+          </label>
+          <label for="preferred-variants">Variantes préférées
+            <input id="preferred-variants" name="preferredVariants" type="text" spellcheck="false" placeholder="fr-FR,en-US">
+          </label>
+        </div>
+      </section>
+
+      <section class="card privacy" aria-labelledby="privacy-title">
+        <h2 id="privacy-title">Confidentialité</h2>
+        <p>L’extension refuse les serveurs distants. Le texte est envoyé uniquement à LanguageTool sur votre propre ordinateur.</p>
+      </section>
+
+      <div class="save-bar">
+        <output id="save-status" role="status"></output>
+        <button id="save" type="button" class="primary">Enregistrer</button>
+      </div>
+    </main>
+    <script src="../shared/core.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>
