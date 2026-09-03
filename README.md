@@ -1,110 +1,176 @@
-<img style="vertical-align: middle;" src="data/icons/re.sonny.Eloquent.svg" width="120" height="120" align="left">
+<img src="data/icons/re.sonny.Eloquent.svg" width="120" height="120" align="left" alt="Eloquent logo">
 
-# Eloquent
+# Eloquent Local Assistant
 
-Your proofreading assistant
+**Private and fully local proofreading for Firefox**
 
-<a href='https://flathub.org/apps/re.sonny.Eloquent'><img width='240' alt='Get it on Flathub' src='https://flathub.org/api/badge?locale=en'/></a>
+<br clear="left">
 
-Eloquent is a proofreading software for English, Spanish, French, German, Portuguese, Polish, Dutch, and more than 20 other languages. It finds many errors that a simple spell checker cannot detect.
+Eloquent Local Assistant is a complete cross-platform proofreading solution powered by [LanguageTool](https://languagetool.org/).
 
-It works fully offline, powered by [LanguageTool standalone server](https://github.com/languagetool-org/languagetool/tree/master/languagetool-standalone).
+It combines a desktop companion with a dedicated Firefox extension. The companion runs LanguageTool locally, while the extension provides spelling and grammar corrections directly inside text fields, rich-text editors and supported websites.
 
-![screenshot](data/screenshot.png)
+Your text remains on your computer: no account, cloud service or remote proofreading API is required.
 
-Eloquent is also able to run as a service in the background to make your local/offline LanguageTool server available to [Firefox, LibreOffice and more](https://dev.languagetool.org/software-that-supports-languagetool-as-a-plug-in-or-add-on). Change the settings to use local LanguageTool, here is an example for the Firefox addon
+## Components
 
-![](./data/firefox-addon.png)
+| Component                                | Purpose                                                                           |
+| ---------------------------------------- | --------------------------------------------------------------------------------- |
+| **Eloquent Local Companion**             | Starts and manages the bundled Java and LanguageTool server                       |
+| **Eloquent Local Assistant for Firefox** | Displays underlines, explanations and replacement suggestions directly in Firefox |
+| **LanguageTool standalone server**       | Performs spelling, grammar and style analysis locally                             |
 
+The companion exposes LanguageTool only through the local endpoint:
 
+```text
+http://127.0.0.1:8082/v2
+```
 
-<!--
+The Firefox extension refuses connections to non-local servers.
+
+## Downloads
+
+### Desktop companion 0.2.0
+
+[Download Eloquent Local Companion 0.2.0](https://github.com/Othman-Benbrahim/Eloquent/releases/tag/companion-v0.2.0)
+
+Available for:
+
+* Windows;
+* macOS Intel;
+* macOS Apple Silicon;
+* Linux as a Flatpak package.
+
+### Firefox extension 0.1.8
+
+[Download the signed Firefox extension](https://github.com/Othman-Benbrahim/Eloquent/releases/tag/firefox-v0.1.8)
+
+The signed `.xpi` file can be installed in standard versions of Firefox.
+
+## Installation
+
+1. Download the appropriate Eloquent Local Companion package for your operating system.
+2. Install and start the companion.
+3. Make sure the local LanguageTool server is running on port `8082`.
+4. Download the signed Firefox `.xpi` file.
+5. Open the `.xpi` file with Firefox and confirm the installation.
+6. Start typing in a supported field.
+
+The extension uses the correct local endpoint by default, so no additional configuration should normally be required.
+
+> Windows SmartScreen or macOS Gatekeeper may display a warning because the current companion packages are not yet digitally signed or notarized.
+
+## Features
+
+* Local grammar, spelling and style checking;
+* clickable underlines and correction suggestions;
+* one-click replacements;
+* support for `input`, `textarea` and `contenteditable` fields;
+* support for rich-text editors, iframes and Shadow DOM components;
+* compatibility with dynamically created editors;
+* transaction-based replacements for JavaScript-controlled editors;
+* protection against duplicated words when applying corrections on Facebook;
+* automatic language detection;
+* normal and thorough proofreading levels;
+* per-domain activation settings;
+* local contextual French proofreading;
+* no account, telemetry or remote text processing.
+
+The extension currently supports:
+
+* French;
+* English;
+* German;
+* Spanish;
+* Italian;
+* Portuguese.
+
+## Privacy
+
+Eloquent Local Assistant is designed to keep proofreading private.
+
+* Text is sent only to the LanguageTool server running on your computer.
+* Only loopback addresses such as `localhost`, `127.0.0.1` and `::1` are accepted.
+* No text is transmitted to the project maintainers.
+* No analytics or telemetry are included.
+* No user account is required.
+* The software continues to work without an Internet connection after installation.
+
+See the complete [privacy policy](firefox-addon/PRIVACY.md).
+
+## Known limitations
+
+* LinkedIn comments are supported.
+* LinkedIn’s new-post composer is not detected reliably yet.
+* Firefox does not allow extensions to access certain protected browser pages and internal fields.
+* Compatibility may vary with websites that frequently replace or redesign their text editors.
+
+The LinkedIn publication editor will be investigated in a future version using diagnostics targeted at the editor structure loaded for authenticated users.
+
 ## Development
 
-```sh
-cd Eloquent
-npm install
-make dev
+The Firefox project is located in `firefox-addon/`.
+
+### Run the Firefox tests on Windows
+
+```powershell
+cd firefox-addon
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\Test-Firefox.ps1
 ```
 
-Make changes and press `<Primary><Shift>Q` on the Eloquent window to restart it.
+### Build the Firefox packages
 
-Use `<Primary><Shift>I` to open the inspector.
-
-```
-java -cp LanguageTool-6.5/languagetool-server.jar org.languagetool.server.HTTPServer --port 8081
-```
-
--->
-
-## Maintainer
-
-<details>
-  <summary>Bookmarks</summary>
-
-- [Flathub](https://flathub.org/apps/re.sonny.Eloquent)
-- [Flathub repo](https://github.com/flathub/re.sonny.Eloquent)
-- [Flathub builds](https://flathub.org/builds/#/apps/re.sonny.Eloquent)
-- [Flathub stats](https://klausenbusk.github.io/flathub-stats/#ref=re.sonny.Eloquent)
-- [Flathub API](https://flathub.org/api/v1/apps/re.sonny.Eloquent)
-</details>
-
-<details>
-
-  <summary>i18n</summary>
-
-```sh
-# To update the pot file
-# xgettext -f po/POTFILES -o po/re.sonny.Eloquent.pot --no-wrap -cTRANSLATORS --from-code=UTF-8
-# sed -i "s/Project-Id-Version: PACKAGE VERSION/Project-Id-Version: re.sonny.Eloquent/" po/re.sonny.Eloquent.pot
-meson compile re.sonny.Eloquent-pot -C build
-
-
-# To create a translation
-# msginit -i po/re.sonny.Eloquent.pot -o po/fr.po -l fr_FR.UTF-8
-echo -n " fr" >> po/LINGUAS
-meson compile re.sonny.Eloquent-update-po -C build
-
-# To update translations
-# msgmerge -U po/*.po po/re.sonny.Eloquent.pot
-meson compile re.sonny.Eloquent-update-po -C build
+```powershell
+cd firefox-addon
+.\scripts\Build-Firefox.ps1
 ```
 
-See https://github.com/sonnyp/Commit/pull/14#issuecomment-894070878
+The build generates:
 
-</details>
+* an unsigned development XPI;
+* a source ZIP for Mozilla Add-ons review.
 
-<details>
+The installable XPI distributed in the GitHub release is signed by Mozilla.
 
-<summary>Publish new version</summary>
+### Project structure
 
-- update metainfo and screenshot
-- `meson compile re.sonny.Eloquent-pot -C build`
-- `meson compile re.sonny.Eloquent-update-po -C build`
-- Update version in `meson.build`
-- git tag
-- flathub
+```text
+firefox-addon/
+├── extension/     Firefox extension source code
+├── companion/     Cross-platform desktop companion
+├── tests/         Automated tests
+├── scripts/       Validation, build and publishing scripts
+└── docs/          Architecture, roadmap and test documentation
+```
 
-</details>
+See the [architecture documentation](firefox-addon/docs/ARCHITECTURE.md) for more information.
+
+## Project history
+
+This project is based on [Eloquent](https://github.com/sonnyp/Eloquent), the offline proofreading application originally created by [Sonny Piers](https://github.com/sonnyp).
+
+This fork extends the original project with:
+
+* a dedicated Firefox extension;
+* a cross-platform local companion;
+* bundled Java and LanguageTool resources;
+* Windows and macOS support;
+* local browser integration;
+* automated Firefox, companion and packaging tests.
 
 ## Copyright
 
+Original Eloquent application:
+
 © 2025 [Sonny Piers](https://github.com/sonnyp)
+
+Eloquent Local Assistant, Firefox integration and companion additions:
+
+© 2026 [Othman Benbrahim](https://github.com/Othman-Benbrahim) and contributors
 
 ## License
 
-GPLv3. Please see [COPYING](COPYING) file.
+Eloquent Local Assistant is free software distributed under the GNU General Public License version 3.
 
-## Notes
-
-Grammer checker
-
-- https://github.com/btford/write-good (en)
-- https://grammalecte.net/ (fr)
-- https://github.com/languagetool-org/languagetool (multi)
-- https://1.6km.me/blog/2021/03/30/the-poor-mans-grammar-checker/
-
-NLP
-
-- https://web.archive.org/web/20230321055642/https://www.abisource.com/projects/link-grammar/
-- https://naturalnode.github.io/natural/
+See the [COPYING](COPYING) file for the complete license.
